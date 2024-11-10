@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+</head>
+<body>
+    <h1>Registro de Personal</h1>
+    
+    <div>
+        <label for="tipoRegistro">Seleccione tipo de registro:</label>
+        <select id="tipoRegistro" onchange="cambiarFormulario()">
+            <option value="">Seleccione una opción</option>
+            <option value="jugador">Jugador</option>
+            <option value="arbitro">Árbitro</option>
+            <option value="directivo">Directivo</option>
+        </select>
+    </div>
+
+    <div id="formularioJugador" style="display: none;">
+        <h2>Registro de Jugador</h2>
+        <form id="formJugador" onsubmit="guardarDatos('jugador', event)">
+            <div>
+                <label for="nombreJugador">Nombre y Apellido:</label>
+                <input type="text" id="nombreJugador" required>
+            </div>
+            <div>
+                <label for="equipo">Equipo:</label>
+                <input type="text" id="equipo" required>
+            </div>
+            <div>
+                <label for="posicion">Posición:</label>
+                <input type="text" id="posicion" required>
+            </div>
+            <div>
+                <label for="altura">Altura:</label>
+                <input type="number" id="altura" step="0.01" required>
+            </div>
+            <div>
+                <label for="edad">Edad:</label>
+                <input type="number" id="edad" required>
+            </div>
+            <div>
+                <label for="identificacion">Número de Identificación:</label>
+                <input type="text" id="identificacion" required>
+            </div>
+            <div>
+                <label for="tipoSangre">Tipo de Sangre:</label>
+                <input type="text" id="tipoSangre" required>
+            </div>
+            <h3>Información de Acudiente</h3>
+            <div>
+                <label for="nombreAcudiente">Nombre del Acudiente:</label>
+                <input type="text" id="nombreAcudiente" required>
+            </div>
+            <div>
+                <label for="parentesco">Parentesco:</label>
+                <input type="text" id="parentesco" required>
+            </div>
+            <div>
+                <label for="celularAcudiente">Celular del Acudiente:</label>
+                <input type="tel" id="celularAcudiente" required>
+            </div>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <div id="formularioArbitro" style="display: none;">
+        <h2>Registro de Árbitro</h2>
+        <form id="formArbitro" onsubmit="guardarDatos('arbitro', event)">
+            <div>
+                <label for="nombreArbitro">Nombre:</label>
+                <input type="text" id="nombreArbitro" required>
+            </div>
+            <div>
+                <label for="identificacionArbitro">Número de Identificación:</label>
+                <input type="text" id="identificacionArbitro" required>
+            </div>
+            <div>
+                <label for="tipoArbitro">Tipo de Árbitro:</label>
+                <select id="tipoArbitro" required>
+                    <option value="principal">Árbitro Principal</option>
+                    <option value="asistente">Árbitro Asistente</option>
+                    <option value="cuarto">Cuarto Árbitro</option>
+                    <option value="asistente_adicional">Árbitro Asistente Adicional</option>
+                    <option value="reserva">Árbitro Asistente de Reserva</option>
+                </select>
+            </div>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <div id="formularioDirectivo" style="display: none;">
+        <h2>Registro de Directivo</h2>
+        <form id="formDirectivo" onsubmit="guardarDatos('directivo', event)">
+            <div>
+                <label for="nombreDirectivo">Nombre:</label>
+                <input type="text" id="nombreDirectivo" required>
+            </div>
+            <div>
+                <label for="apellidoDirectivo">Apellido:</label>
+                <input type="text" id="apellidoDirectivo" required>
+            </div>
+            <div>
+                <label for="edadDirectivo">Edad:</label>
+                <input type="number" id="edadDirectivo" required>
+            </div>
+            <div>
+                <label for="identificacionDirectivo">Número de Identificación:</label>
+                <input type="text" id="identificacionDirectivo" required>
+            </div>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <script>
+        function cambiarFormulario() {
+            const tipoSeleccionado = document.getElementById('tipoRegistro').value;
+            
+            // Ocultar todos los formularios
+            document.getElementById('formularioJugador').style.display = 'none';
+            document.getElementById('formularioArbitro').style.display = 'none';
+            document.getElementById('formularioDirectivo').style.display = 'none';
+            
+            // Mostrar el formulario seleccionado
+            if (tipoSeleccionado) {
+                document.getElementById('formulario' + tipoSeleccionado.charAt(0).toUpperCase() + tipoSeleccionado.slice(1)).style.display = 'block';
+            }
+        }
+
+        function guardarDatos(tipo, event) {
+    event.preventDefault();
+    const formulario = document.getElementById('form' + tipo.charAt(0).toUpperCase() + tipo.slice(1));
+    const datos = {};
+    
+    // Recolectar todos los inputs del formulario
+    formulario.querySelectorAll('input, select').forEach(input => {
+        datos[input.id] = input.value;
+    });
+
+    console.log('Datos a enviar:', datos); // Añadir este log
+
+    // Enviar datos al backend
+    fetch('http://localhost:5500/api/' + tipo, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => {
+        console.log('Status:', response.status); // Añadir este log
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta:', data); // Añadir este log
+        alert('Registro guardado exitosamente');
+        formulario.reset();
+    })
+    .catch(error => {
+        console.error('Error detallado:', error); // Mejorar el log de error
+        alert('Error al guardar el registro: ' + error.message);
+    });
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de Equipo</title>
+</head>
+<body>
+    <h1>Información del Equipo</h1>
+    
+    <div>
+        <label for="tipoVisualizacion">Ver información de:</label>
+        <select id="tipoVisualizacion" onchange="cargarDatos()">
+            <option value="">Seleccione una opción</option>
+            <option value="jugadores">Jugadores</option>
+            <option value="arbitros">Árbitros</option>
+            <option value="directivos">Directivos</option>
+        </select>
+    </div>
+
+    <div id="contenidoDatos"></div>
+
+    <script>
+        function cargarDatos() {
+            const tipo = document.getElementById('tipoVisualizacion').value;
+            if (!tipo) return;
+
+            fetch(`http://localhost:5500/api/${tipo}`)
+                .then(response => response.json())
+                .then(data => mostrarDatos(data, tipo))
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los datos');
+                });
+        }
+
+        function mostrarDatos(data, tipo) {
+            const contenedor = document.getElementById('contenidoDatos');
+            contenedor.innerHTML = ''; // Limpiar contenido anterior
+
+            const tabla = document.createElement('table');
+            tabla.border = '1';
+
+            // Crear encabezados según el tipo
+            const encabezados = crearEncabezados(tipo);
+            tabla.appendChild(encabezados);
+
+            // Crear filas de datos
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                Object.keys(item).forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = item[key];
+                    tr.appendChild(td);
+                });
+                
+                // Agregar botones de editar y eliminar
+                const tdAcciones = document.createElement('td');
+                tdAcciones.innerHTML = `
+                    <button onclick="editarRegistro('${tipo}', '${item.id}')">Editar</button>
+                    <button onclick="eliminarRegistro('${tipo}', '${item.id}')">Eliminar</button>
+                `;
+                tr.appendChild(tdAcciones);
+                
+                tabla.appendChild(tr);
+            });
+
+            contenedor.appendChild(tabla);
+        }
+
+        function crearEncabezados(tipo) {
+            const tr = document.createElement('tr');
+            let campos = [];
+
+            switch(tipo) {
+                case 'jugadores':
+                    campos = ['Nombre', 'Equipo', 'Posición', 'Altura', 'Edad', 'Identificación', 'Tipo Sangre', 'Acudiente', 'Parentesco', 'Celular'];
+                    break;
+                case 'arbitros':
+                    campos = ['Nombre', 'Identificación', 'Tipo de Árbitro'];
+                    break;
+                case 'directivos':
+                    campos = ['Nombre', 'Apellido', 'Edad', 'Identificación'];
+                    break;
+            }
+
+            campos.forEach(campo => {
+                const th = document.createElement('th');
+                th.textContent = campo;
+                tr.appendChild(th);
+            });
+
+            const thAcciones = document.createElement('th');
+            thAcciones.textContent = 'Acciones';
+            tr.appendChild(thAcciones);
+
+            return tr;
+        }
+
+        function editarRegistro(tipo, id) {
+            // Implementar lógica de edición
+            console.log(`Editando ${tipo} con ID ${id}`);
+        }
+
+        function eliminarRegistro(tipo, id) {
+            if (confirm('¿Está seguro de eliminar este registro?')) {
+                fetch(`http://localhost:5500/api/${tipo}/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Registro eliminado exitosamente');
+                    cargarDatos(); // Recargar datos
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el registro');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
